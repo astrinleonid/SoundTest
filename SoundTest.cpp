@@ -2,6 +2,9 @@
 #include <SDL.h>
 #include <iostream>
 #include <windows.h>
+#include <vector>
+#include <mutex>
+#include <condition_variable>
 
 // The audio callback function. SDL calls this function when it needs more data.
 void audioCallback(void* userdata, Uint8 * stream, int len) {
@@ -24,7 +27,7 @@ int main(int argc, char* argv[]) {
 
     if (audioDeviceCount > 1) {
         // Attempt to open the second device in the list (index 1)
-        deviceName = SDL_GetAudioDeviceName(1, 0);
+        deviceName = SDL_GetAudioDeviceName(0, 0);
         std::cout << "Opening audio device: " << deviceName << std::endl;
     }
     else {
@@ -38,16 +41,9 @@ int main(int argc, char* argv[]) {
     want.freq = 48000; // Sample rate
     want.format = AUDIO_S16SYS; // Sample format (signed 16-bit)
     want.channels = 2; // Stereo
-    want.samples = 4096; // Buffer size
+    want.samples = 48; // Buffer size
     want.callback = audioCallback; // Your callback function
-    // Assuming you have an array of Sint16 type audio data
-    
-    //int deviceCount = SDL_GetNumAudioDevices(0); // 0 for playback devices, 1 for capture devices
-    //for (int i = 0; i < deviceCount; i++) {
-    //    const char* deviceName = SDL_GetAudioDeviceName(i, 0);
-    //    std::cout << "Audio Device " << i << ": " << deviceName << std::endl;
-    //}
-
+    // Assuming you have an array of Sint16 type audio data    
 
 
     const int sampleRate = 48000; // Same as in your SDL setup
@@ -91,7 +87,7 @@ int main(int argc, char* argv[]) {
     // Your application code here. You should keep the application running
     // to hear the sound, perhaps wait or process user input.
 
-    int audioDurationMs = 1000;
+    int audioDurationMs = 2000;
 
 
     SDL_Delay(audioDurationMs);
