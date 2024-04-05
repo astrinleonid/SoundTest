@@ -1,6 +1,7 @@
 
 #include <SDL.h>
 #include <iostream>
+#define NOMINMAX
 #include <windows.h>
 #include <vector>
 #include <mutex>
@@ -66,7 +67,7 @@ void audioCallback(void* userdata, Uint8* stream, int len) {
 }
 
 std::atomic<bool> keepRunning(true);
-void generateWave(CircularBuffer& buffer, const ToneGeneratorState& state) {
+void generateWave(CircularBuffer& buffer, ToneGeneratorState& state) {
     double phase = 0.0;
     Sint16 sampleBuffer[48];
     const int sampleRate = 48000;
@@ -90,39 +91,31 @@ void generateWave(CircularBuffer& buffer, const ToneGeneratorState& state) {
 
 
 int main(int argc, char* argv[]) {
-    if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-        std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
-        return -1;
-    }
-    if (std::cin.fail()) {
-        std::cin.clear(); // Clear error flags
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Discard the rest of the line
-    }
+    
+        if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+            std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
+            return -1;
+        }
 
+        SDL_AudioSpec want, have;
+        SDL_zero(want);
+        want.freq = 48000; // Sample rate
+        want.format = AUDIO_S16SYS; // Sample format (signed 16-bit)
+        want.channels = 2; // Stereo
+        want.samples = 2048; // Buffer size
+        want.callback = audioCallback; // Audio callback function
 
-    int audioDeviceCount = SDL_GetNumAudioDevices(0); // 0 for playback devices, 1 for capture devices
-    const char* deviceName = nullptr;
-
-    if (audioDeviceCount > 1) {
-        // Attempt to open the second device in the list (index 1)
-        deviceName = SDL_GetAudioDeviceName(0, 0);
-        std::cout << "Opening audio device: " << deviceName << std::endl;
-    }
-    else {
-        std::cerr << "Not enough audio devices available." << std::endl;
-        SDL_Quit();
-        return -1;
-    }
-
-    SDL_AudioSpec want, have;
-    SDL_zero(want);
-    want.freq = 48000; // Sample rate
-    want.format = AUDIO_S16SYS; // Sample format (signed 16-bit)
-    want.channels = 2; // Stereo
-    want.samples = 2048; // Buffer size
-    want.callback = audioCallback; // Your callback function
-    // Assuming you have an array of Sint16 type audio data    
-
+        // Open the default audio device (NULL specifies the default audio device)
+        SDL_AudioDeviceID dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+        if (dev == 0) {
+            std::cerr << "Failed to open audio: " << SDL_GetError() << std::endl;
+            SDL_Quit();
+            return -1;
+        }
+        else {
+            std::cout << "Default audio device opened successfully." << std::endl;
+            // Optional: Check if 'have' matches 'want' and handle any discrepancies
+        }
 
     const int sampleRate = 48000; // Same as in your SDL setup
     //const float frequency = 220.0; // Frequency of the sine wave
@@ -136,7 +129,7 @@ int main(int argc, char* argv[]) {
 
     want.userdata = audioData;
 
-    SDL_AudioDeviceID dev = SDL_OpenAudioDevice(deviceName, 0, &want, &have, 0);
+    SDL_AudioDeviceID dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
     if (dev == 0) {
         std::cerr << "Failed to open audio: " << SDL_GetError() << std::endl;
         SDL_Quit();
