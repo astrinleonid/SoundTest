@@ -79,8 +79,17 @@ void generateWave(CircularBuffer& buffer, ToneGeneratorState& state) {
 }
 
 int main(int argc, char* argv[]) {
-    if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_EVENTS) < 0) {
+    if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_EVENTS | SDL_INIT_VIDEO) < 0) {
         std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
+        return -1;
+    }
+
+    SDL_Window* window = SDL_CreateWindow("Audio Generator",
+        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        640, 480, SDL_WINDOW_SHOWN);
+    if (!window) {
+        std::cerr << "Failed to create window: " << SDL_GetError() << std::endl;
+        SDL_Quit();
         return -1;
     }
 
@@ -114,13 +123,33 @@ int main(int argc, char* argv[]) {
             }
             else if (event.type == SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
-                case SDLK_u:
-                    toneState.frequency.store(toneState.frequency.load() + 10.0f);
-                    std::cout << "+10f";
+                case SDLK_w:
+                    toneState.frequency.store(110.0f);
+                    std::cout << "a";
                     break;
-                case SDLK_d:
-                    toneState.frequency.store(toneState.frequency.load() - 10.0f);
-                    std::cout << "-10f";
+                case SDLK_e:
+                    toneState.frequency.store(123.0f);
+                    std::cout << "b";
+                    break;
+                case SDLK_r:
+                    toneState.frequency.store(131.0f);
+                    std::cout << "c";
+                    break;
+                case SDLK_t:
+                    toneState.frequency.store(147.0f);
+                    std::cout << "d";
+                    break;
+                case SDLK_y:
+                    toneState.frequency.store(165.0f);
+                    std::cout << "e";
+                    break;
+                case SDLK_u:
+                    toneState.frequency.store(175.0f);
+                    std::cout << "f";
+                    break;
+                case SDLK_i:
+                    toneState.frequency.store(196.0f);
+                    std::cout << "g";
                     break;
                 case SDLK_q:
                     toneState.applicationIsRunning.store(false);
@@ -133,6 +162,7 @@ int main(int argc, char* argv[]) {
 
     waveThread.join();
     SDL_CloseAudioDevice(dev);
+    SDL_DestroyWindow(window);
     SDL_Quit();
     return 0;
 }
