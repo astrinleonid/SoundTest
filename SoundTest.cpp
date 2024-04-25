@@ -79,7 +79,7 @@ void generateWave(CircularBuffer& buffer, ToneGeneratorState& state) {
 }
 
 int main(int argc, char* argv[]) {
-    if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+    if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_EVENTS) < 0) {
         std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
         return -1;
     }
@@ -98,35 +98,36 @@ int main(int argc, char* argv[]) {
         SDL_Quit();
         return -1;
     }
-    
+   
     SDL_PauseAudioDevice(dev, 0); // Start the audio device
+    std::cout << "Audio device opened successfully.\n";
 
     ToneGeneratorState toneState;
     std::thread waveThread(generateWave, std::ref(audioBuffer), std::ref(toneState));
 
    
+    SDL_Event event;
     while (toneState.applicationIsRunning.load()) {
-        std::cout << "Enter 'u' to increase tone, 'd' to decrease, 'q' to quit: ";
-        char command;
-        std::cin >> command;
-
-        if (std::cin.fail()) {
-            std::cin.clear(); // Clear error flags
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Discard the rest of the line
-            continue; // Skip further processing and prompt for input again
-        }
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Always flush the buffer
-
-        switch (command) {
-        case 'u':
-            toneState.frequency.store(toneState.frequency.load() + 10.0f);
-            break;
-        case 'd':
-            toneState.frequency.store(toneState.frequency.load() - 10.0f);
-            break;
-        case 'q':
-            toneState.applicationIsRunning.store(false);
-            break;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                toneState.applicationIsRunning.store(false);
+            }
+            else if (event.type == SDL_KEYDOWN) {
+                switch (event.key.keysym.sym) {
+                case SDLK_u:
+                    toneState.frequency.store(toneState.frequency.load() + 10.0f);
+                    std::cout << "+10f";
+                    break;
+                case SDLK_d:
+                    toneState.frequency.store(toneState.frequency.load() - 10.0f);
+                    std::cout << "-10f";
+                    break;
+                case SDLK_q:
+                    toneState.applicationIsRunning.store(false);
+                    std::cout << "stop";
+                    break;
+                }
+            }
         }
     }
 
