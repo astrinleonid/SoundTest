@@ -1,5 +1,6 @@
 
 #include <SDL.h>
+#include <RtMidi.h> 
 #include <iostream>
 #include <vector>
 #include <mutex>
@@ -78,11 +79,79 @@ void generateWave(CircularBuffer& buffer, ToneGeneratorState& state) {
     }
 }
 
+
+
+void setupMidiInput(RtMidiIn& midiIn, ToneGeneratorState& state) {
+    try {
+        midiIn.openPort(0);  // Open the first available MIDI port.
+        midiIn.setCallback([](double deltatime, std::vector<unsigned char>* message, void* userData) {
+            ToneGeneratorState* state = static_cast<ToneGeneratorState*>(userData);
+            if (!message->empty()) {
+                unsigned char status = message->at(0);
+                unsigned char note = message->at(1);
+                unsigned char velocity = message->at(2);
+
+                // Example: MIDI note-on message handling (status == 144 for note-on)
+                if (status == 144 && velocity > 0) { // Note On message with velocity > 0
+                    // Example: Convert MIDI note to frequency (simplified, adjust as necessary)
+                    float frequency = 440.0f * pow(2.0f, (note - 69) / 12.0f);
+                    state->frequency.store(frequency);
+                    std::cout << "Note ON, Pitch: " << (int)note << ", Frequency: " << frequency << " Hz\n";
+                }
+                else if (status == 128 || (status == 144 && velocity == 0)) { // Note Off
+                    std::cout << "Note OFF, Pitch: " << (int)note << std::endl;
+                }
+            }
+            }, &state);
+
+        midiIn.ignoreTypes(false, false, false); // Optionally ignore sysex, timing, or active sensing messages.
+    }
+    catch (RtMidiError& error) {
+        error.printMessage();
+    }
+}
+
+
+
+
 int main(int argc, char* argv[]) {
     if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_EVENTS | SDL_INIT_VIDEO) < 0) {
         std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
         return -1;
     }
+
+
+    RtMidiIn* midiin = new RtMidiIn();
+    std::vector<unsigned char> message;
+    int nBytes, i;
+
+
+
+
+    try {
+        midiin->openPort(0);  // Open first available MIDI port
+        midiin->ignoreTypes(false, false, false);  // Don't ignore any messages
+
+        while (true) {
+            midiin->getMessage(&message);
+            nBytes = message.size();
+            for (i = 0; i < nBytes; i++)
+                std::cout << "Byte " << i << ": " << (int)message[i] << std::endl;
+
+            if (nBytes > 0)
+                break;  // Exit the loop after reading the first message
+
+        }
+
+
+    }
+    catch (RtMidiError& error) {
+        std::cerr << "RtMidiError: " << error.getMessage() << std::endl;
+        delete midiin;
+        return 1;  // Exit with error status
+    }
+
+
 
     SDL_Window* window = SDL_CreateWindow("Audio Generator",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -93,6 +162,9 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
+    RtMidiIn midiIn;
+    
+
     SDL_AudioSpec want, have;
     SDL_zero(want);
     want.freq = 48000;
@@ -100,6 +172,8 @@ int main(int argc, char* argv[]) {
     want.channels = 2;
     want.samples = buffersize;
     want.callback = audioCallback;
+
+
 
     SDL_AudioDeviceID dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
     if (dev == 0) {
@@ -112,6 +186,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Audio device opened successfully.\n";
 
     ToneGeneratorState toneState;
+    setupMidiInput(midiIn, toneState);
     std::thread waveThread(generateWave, std::ref(audioBuffer), std::ref(toneState));
 
    
@@ -161,6 +236,7 @@ int main(int argc, char* argv[]) {
     }
 
     waveThread.join();
+    delete midiin;
     SDL_CloseAudioDevice(dev);
     SDL_DestroyWindow(window);
     SDL_Quit();

@@ -114,15 +114,15 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_WINDOWS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\SDL2-2.30.0\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\SDL2-2.30.0\include;C:\Users\astri\Downloads\rtmidi-6.0.0\rtmidi-6.0.0</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\SDL2-2.30.0\lib\x64;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;SDL2.lib;SDL2main.lib;Shell32.lib;</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;SDL2.lib;SDL2main.lib;Shell32.lib;winmm.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -131,9 +131,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_WINDOWS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\SDL2-2.30.0\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\SDL2-2.30.0\include;C:\Users\astri\Downloads\rtmidi-6.0.0\rtmidi-6.0.0</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -141,11 +141,17 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\SDL2-2.30.0\lib\x64;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;SDL2.lib;SDL2main.lib;Shell32.lib;</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;SDL2.lib;SDL2main.lib;Shell32.lib;winmm.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\Downloads\rtmidi-6.0.0\rtmidi-6.0.0\RtMidi.cpp" />
+    <ClCompile Include="..\..\..\Downloads\rtmidi-6.0.0\rtmidi-6.0.0\rtmidi_c.cpp" />
     <ClCompile Include="SoundTest.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\Downloads\rtmidi-6.0.0\rtmidi-6.0.0\RtMidi.h" />
+    <ClInclude Include="..\..\..\Downloads\rtmidi-6.0.0\rtmidi-6.0.0\rtmidi_c.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

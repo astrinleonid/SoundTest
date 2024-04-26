@@ -18,5 +18,19 @@
     <ClCompile Include="SoundTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Downloads\rtmidi-6.0.0\rtmidi-6.0.0\RtMidi.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Downloads\rtmidi-6.0.0\rtmidi-6.0.0\rtmidi_c.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\Downloads\rtmidi-6.0.0\rtmidi-6.0.0\RtMidi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Downloads\rtmidi-6.0.0\rtmidi-6.0.0\rtmidi_c.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
