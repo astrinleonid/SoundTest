@@ -8,6 +8,18 @@
 #include <cmath> // For M_PI
 #include <thread>
 #include <limits>
+#include <mmsystem.h> 
+#include <windows.h>
+
+
+HMIDIIN hMIDhnd;
+MMRESULT midErr;
+UINT nDev = 0;//8;//10;//7;//2;   //8; 
+DWORD dwUserParam = 0;
+
+
+
+
 const int buffersize = 48;
 struct ToneGeneratorState {
     std::atomic<float> frequency{ 440.0 }; // Default frequency (A4)
@@ -52,6 +64,24 @@ private:
 };
 
 
+
+HMIDIIN hMIDhnd;
+MMRESULT midErr;
+UINT nDev = 0;//8;//10;//7;//2;   //8; 
+DWORD dwUserParam = 0;
+
+
+void CALLBACK MidiInProc(
+    HMIDIIN hMidiIn,
+    UINT wMsg,
+    DWORD_PTR dwInstance,
+    DWORD_PTR dwParam1,
+    DWORD_PTR dwParam2
+) {
+    // Handle MIDI messages here
+}
+
+
 CircularBuffer audioBuffer(buffersize * 2);
 
 void audioCallback(void* userdata, Uint8* stream, int len) {
@@ -83,6 +113,10 @@ int main(int argc, char* argv[]) {
         std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
         return -1;
     }
+
+    HMIDIIN hMidiDevice;
+    MMRESULT result;
+    UINT deviceId = 0;
 
     SDL_Window* window = SDL_CreateWindow("Audio Generator",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
