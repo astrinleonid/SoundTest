@@ -1,4 +1,6 @@
 
+#include <mmsystem.h> 
+#include <windows.h>
 #include <SDL.h>
 #include <iostream>
 #include <vector>
@@ -12,12 +14,20 @@
 #include <windows.h>
 
 
-HMIDIIN hMIDhnd;
-MMRESULT midErr;
-UINT nDev = 0;//8;//10;//7;//2;   //8; 
-DWORD dwUserParam = 0;
+HMIDIIN hMidiDevice;
+MMRESULT result;
+UINT deviceId = 0;
 
-
+void CALLBACK MidiInProc(
+    HMIDIIN hMidiIn,
+    UINT wMsg,
+    DWORD_PTR dwInstance,
+    DWORD_PTR dwParam1,
+    DWORD_PTR dwParam2
+) {
+    // Handle MIDI messages here
+    std::cout << "MIDI message received: " << dwParam1 << std::endl;
+}
 
 
 const int buffersize = 48;
@@ -65,21 +75,6 @@ private:
 
 
 
-HMIDIIN hMIDhnd;
-MMRESULT midErr;
-UINT nDev = 0;//8;//10;//7;//2;   //8; 
-DWORD dwUserParam = 0;
-
-
-void CALLBACK MidiInProc(
-    HMIDIIN hMidiIn,
-    UINT wMsg,
-    DWORD_PTR dwInstance,
-    DWORD_PTR dwParam1,
-    DWORD_PTR dwParam2
-) {
-    // Handle MIDI messages here
-}
 
 
 CircularBuffer audioBuffer(buffersize * 2);
@@ -114,9 +109,6 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    HMIDIIN hMidiDevice;
-    MMRESULT result;
-    UINT deviceId = 0;
 
     SDL_Window* window = SDL_CreateWindow("Audio Generator",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -147,6 +139,22 @@ int main(int argc, char* argv[]) {
 
     ToneGeneratorState toneState;
     std::thread waveThread(generateWave, std::ref(audioBuffer), std::ref(toneState));
+
+
+
+    result = midiInOpen(&hMidiDevice, deviceId, (DWORD_PTR)MidiInProc, 0, CALLBACK_FUNCTION);
+    if (result != MMSYSERR_NOERROR) {
+        std::cerr << "Failed to open MIDI input device." << std::endl;
+        return 1;
+    }
+
+    result = midiInStart(hMidiDevice);
+    if (result != MMSYSERR_NOERROR) {
+        std::cerr << "Failed to start MIDI input." << std::endl;
+        midiInClose(hMidiDevice);
+        return 1;
+    }
+
 
    
     SDL_Event event;
@@ -193,7 +201,8 @@ int main(int argc, char* argv[]) {
             }
         }
     }
-
+    midiInStop(hMidiDevice);
+    midiInClose(hMidiDevice);
     waveThread.join();
     SDL_CloseAudioDevice(dev);
     SDL_DestroyWindow(window);
